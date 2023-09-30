@@ -8,15 +8,17 @@ template <typename T>
 class Array{
 public:
     explicit Array (size_t size, const T& value) : size_(size){
-        data_ = new char[size_ * sizeof(T)];
+        data_ = static_cast<T*>(static_cast<void*>(new char[size_ * sizeof(T)]));
         for (int i = 0; i < size_; i++){
-            new (data_ + i * sizeof(T)) T(value);
+            new (data_ + i) T(value);
         }
     }
 
     Array (const Array & rhs) : size_(rhs.size_) {
-        data_ = new char[size * sizeof(T)];
-        std::memcpy(data_, rhs.data_, size_ * sizeof(T));
+        data_ = static_cast<T*>(static_cast<void*>(new char[size_ * sizeof(T)]));
+        for (int i = 0; i < size_; i++){
+            new (data_ + i) T(*(rhs.data_ + i));
+        }
     }
 
     Array (Array && rhs) : size_(rhs.size_), data_(rhs.data_) {
@@ -25,7 +27,7 @@ public:
     
     ~Array () {
         for (int i = 0; i < size_; i++){
-            static_cast<T*>(static_cast<void*>(data_ + i))->~T();
+            (data_ + i)->~T();
         }
         delete [] data_;
     }
@@ -33,12 +35,12 @@ public:
     Array& operator=(const Array & rhs){
         if (&rhs == this)
             return *this;
-        if (rhs.size_ != size_){
-            delete [] data_;
-            size_ = rhs.size_;
-            data_ = new char[size_ * sizeof(T)];
+        delete [] data_;
+        size_ = rhs.size_;
+        data_ = static_cast<T*>(static_cast<void*>(new char[size_ * sizeof(T)]));
+        for (int i = 0; i < size_; i++){
+            new (data_ + i) T(*(rhs.data_ + i));
         }
-        std::memcpy(data_, rhs.data_, size_ * sizeof(T));
         return *this;
     }
 
@@ -48,11 +50,11 @@ public:
     }
 
     T& operator[](size_t idx){
-        return *static_cast<T*>(static_cast<void*>(data_ + idx * sizeof(T)));
+        return *(data_ + idx);
     }
 
     const T& operator[](size_t idx) const {
-        return *(data_ + idx * sizeof(T));
+        return *(data_ + idx);
     }
 
     size_t size() const {
@@ -60,6 +62,6 @@ public:
     }
 
 private:
-    char* data_;
+    T* data_;
     size_t size_;
 };

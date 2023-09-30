@@ -49,12 +49,16 @@ struct Pig : public Animal
 // класс для челмедведосвина
 struct ManBearPig : public Pig, public Bear, public Man
 {
-    ManBearPig(size_t id) : Man(id), Bear(id), Pig(id), Unit(id) { }
+    ManBearPig(size_t id) : Man(1), Bear(1), Pig(1), Unit(id) { }
+    size_t pig_id() const {return Pig::id();}
 };
 
 int main(){
     ManBearPig a(8);
     std::cout << a.id();
+    std::cout << std::endl;
+    std::cout << a.pig_id();
+    std::cout << std::endl;
 }
 /*
 bad solution
